@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <title>Nexus Chat — Premium P2P Messenger</title>
+    <!-- PeerJS library -->
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+    <!-- Font Awesome 6 (ikon premium) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Google Fonts: Inter + Outfit -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', 'Outfit', system-ui, -apple-system, sans-serif;
+            background: #0c0f17;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        /* Container utama — fullscreen dengan margin kecil di HP */
+        .chat-container {
+            width: 100%;
+            height: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+            background: #0f111a;
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.4);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Header premium */
+        .premium-header {
+            background: rgba(18, 22, 35, 0.9);
+            backdrop-filter: blur(20px);
+            padding: 20px 20px 12px 20px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #7c5cff, #b46eff);
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            box-shadow: 0 6px 14px rgba(124, 92, 255, 0.3);
+        }
+
+        .logo-text h1 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #ffffff, #cbb7ff);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            letter-spacing: -0.5px;
+        }
+
+        .logo-text p {
+            font-size: 0.65rem;
+            color: #8e9aaf;
+            margin-top: 2px;
+        }
+
+        .user-badge {
+            background: rgba(124, 92, 255, 0.2);
+            padding: 6px 12px;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: #cbb7ff;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Kartu ID (premium glass) */
+        .id-card {
+            background: rgba(26, 30, 46, 0.8);
+            backdrop-filter: blur(12px);
+            margin: 12px 16px;
+            border-radius: 28px;
+            padding: 12px 18px;
+            border: 1px solid rgba(124, 92, 255, 0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .id-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .id-label {
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: #a0aec0;
+            letter-spacing: 0.5px;
+        }
+
+        .id-value {
+            background: #0b0e16;
+            padding: 6px 14px;
+            border-radius: 40px;
+            font-family: 'Monaco', monospace;
+            font-size: 0.75rem;
+            color: #b9abff;
+            font-weight: 500;
+        }
+
+        .id-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .id-actions button {
+            background: rgba(255, 255, 255, 0.05);
+            border: none;
+            padding: 8px 14px;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: #e2e8f0;
+            cursor: pointer;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .id-actions button#newIdBtn {
+            background: #7c5cff20;
+            color: #cbb7ff;
+        }
+        .id-actions button#newIdBtn:hover {
+            background: #7c5cff40;
+        }
+        .id-actions button#deleteIdBtn {
+            background: #ff5c5c20;
+            color: #ffb7b7;
+        }
+        .id-actions button#deleteIdBtn:hover {
+            background: #ff5c5c40;
+        }
+        .id-actions button#copyIdBtn {
+            background: #2d3748;
+        }
+
+        /* Panel koneksi */
+        .connect-panel {
+            background: #1a1e2e;
+            margin: 0 16px 16px 16px;
+            border-radius: 60px;
+            padding: 6px 6px 6px 18px;
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        .connect-panel input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            padding: 12px 0;
+            color: #f0f3fa;
+            font-size: 0.85rem;
+            outline: none;
+        }
+        .connect-panel input::placeholder {
+            color: #5b677e;
+        }
+        .connect-panel button {
+            background: #7c5cff;
+            border: none;
+            padding: 10px 22px;
+            border-radius: 50px;
+            font-weight: 600;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .connect-panel button:hover {
+            background: #946eff;
+            transform: scale(0.97);
+        }
+
+        /* Area pesan (scroll) */
+        .messages-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 16px 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            scroll-behavior: smooth;
+        }
+
+        /* Bubble premium */
+        .message {
+            display: flex;
+            width: 100%;
+            animation: floatIn 0.2s ease-out;
+        }
+        @keyframes floatIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .message.sent {
+            justify-content: flex-end;
+        }
+        .message.received {
+            justify-content: flex-start;
+        }
+        .bubble {
+            max-width: 82%;
+            padding: 12px 18px;
+            border-radius: 28px;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            font-weight: 500;
+            position: relative;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .sent .bubble {
+            background: linear-gradient(125deg, #7c5cff, #9f7aff);
+            color: white;
+            border-bottom-right-radius: 8px;
+        }
+        .received .bubble {
+            background: #1e2235;
+            color: #eef2ff;
+            border-bottom-left-radius: 8px;
+            border: 0.5px solid rgba(124, 92, 255, 0.3);
+        }
+        .time {
+            font-size: 0.6rem;
+            margin-top: 6px;
+            opacity: 0.7;
+            text-align: right;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 5px;
+        }
+
+        /* Input area premium */
+        .input-wrapper {
+            background: #121624;
+            padding: 12px 16px 20px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+        .input-wrapper input {
+            flex: 1;
+            background: #1e2338;
+            border: none;
+            padding: 14px 20px;
+            border-radius: 40px;
+            color: white;
+            font-size: 0.9rem;
+            outline: none;
+            transition: 0.2s;
+        }
+        .input-wrapper input:focus {
+            background: #2a2f4a;
+            box-shadow: 0 0 0 2px #7c5cff;
+        }
+        .input-wrapper button {
+            width: 52px;
+            height: 52px;
+            background: linear-gradient(135deg, #7c5cff, #9f7aff);
+            border: none;
+            border-radius: 30px;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .input-wrapper button:disabled {
+            opacity: 0.5;
+            transform: none;
+            cursor: not-allowed;
+        }
+        .status-line {
+            background: #0b0e16;
+            padding: 8px;
+            text-align: center;
+            font-size: 0.65rem;
+            color: #8e9aaf;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+        }
+
+        /* Scrollbar custom */
+        .messages-area::-webkit-scrollbar {
+            width: 4px;
+        }
+        .messages-area::-webkit-scrollbar-track {
+            background: #1a1e2e;
+        }
+        .messages-area::-webkit-scrollbar-thumb {
+            background: #7c5cff;
+            border-radius: 10px;
+        }
+
+        /* Responsif tambahan */
+        @media (max-width: 480px) {
+            .premium-header {
+                padding: 16px 16px 10px;
+            }
+            .logo-text h1 {
+                font-size: 1.2rem;
+            }
+            .id-card {
+                margin: 8px 12px;
+                padding: 10px 14px;
+            }
+            .id-value {
+                font-size: 0.65rem;
+            }
+            .bubble {
+                max-width: 88%;
+                font-size: 0.85rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="chat-container">
+    <div class="premium-header">
+        <div class="logo-area">
+            <div class="logo-icon"><i class="fas fa-comet"></i></div>
+            <div class="logo-text">
+                <h1>NexusChat</h1>
+                <p>private & encrypted</p>
+            </div>
+        </div>
+        <div class="user-badge">
+            <i class="fas fa-shield-alt"></i> <span id="userNameDisplay">Peer</span>
+        </div>
+    </div>
+
+    <!-- ID Card dengan tombol kelola -->
+    <div class="id-card">
+        <div class="id-info">
+            <span class="id-label"><i class="fas fa-key"></i> ID permanen</span>
+            <span class="id-value" id="myPeerId">--</span>
+        </div>
+        <div class="id-actions">
+            <button id="copyIdBtn"><i class="fas fa-copy"></i> Salin</button>
+            <button id="newIdBtn"><i class="fas fa-sync-alt"></i> Baru</button>
+            <button id="deleteIdBtn"><i class="fas fa-trash-alt"></i> Hapus</button>
+        </div>
+    </div>
+
+    <!-- Koneksi panel -->
+    <div class="connect-panel">
+        <input type="text" id="targetId" placeholder="Masukkan ID teman...">
+        <button id="connectBtn"><i class="fas fa-plug"></i> Sambung</button>
+    </div>
+
+    <!-- Chat messages -->
+    <div class="messages-area" id="chatMessages">
+        <div class="message received">
+            <div class="bubble">
+                ✨ Selamat datang di NexusChat! <br> Bagikan ID unikmu, lalu masukkan ID teman untuk mulai chatting.
+                <div class="time"><i class="far fa-clock"></i> sekarang</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Input message -->
+    <div class="input-wrapper">
+        <input type="text" id="messageInput" placeholder="Ketik pesan rahasia..." disabled>
+        <button id="sendBtn" disabled><i class="fas fa-paper-plane"></i></button>
+    </div>
+    <div class="status-line" id="statusText">
+        <i class="fas fa-circle-notch fa-spin"></i> Inisialisasi koneksi aman...
+    </div>
+</div>
+
+<script>
+    // ========== PREMIUM CHAT dengan ID PERMANEN & KELOLA ID ==========
+    let peer;
+    let currentConnection = null;
+    let isConnected = false;
+
+    // --- Fungsi manajemen ID ---
+    function createNewId() {
+        if (confirm("Buat ID baru? ID lama akan hangus. Koneksi akan terputus.")) {
+            localStorage.removeItem("nexus_permanent_id");
+            if (currentConnection) currentConnection.close();
+            if (peer) peer.destroy();
+            location.reload();
+        }
+    }
+
+    function deleteSavedId() {
+        if (confirm("Hapus semua data ID? Kamu akan mendapatkan ID baru dan chat akan direset.")) {
+            localStorage.removeItem("nexus_permanent_id");
+            localStorage.removeItem("nexus_username");
+            if (currentConnection) currentConnection.close();
+            if (peer) peer.destroy();
+            location.reload();
+        }
+    }
+
+    // Ambil atau buat ID permanen
+    let savedPeerId = localStorage.getItem("nexus_permanent_id");
+    if (!savedPeerId) {
+        savedPeerId = "nx_" + Date.now() + "_" + Math.floor(Math.random() * 10000);
+        localStorage.setItem("nexus_permanent_id", savedPeerId);
+    }
+
+    // Inisialisasi Peer dengan ID tetap
+    try {
+        peer = new Peer(savedPeerId);
+    } catch(e) {
+        savedPeerId = "nx_" + Date.now() + "_" + Math.floor(Math.random() * 100000);
+        localStorage.setItem("nexus_permanent_id", savedPeerId);
+        peer = new Peer(savedPeerId);
+    }
+
+    // DOM
+    const myIdSpan = document.getElementById('myPeerId');
+    const targetIdInput = document.getElementById('targetId');
+    const connectBtn = document.getElementById('connectBtn');
+    const copyBtn = document.getElementById('copyIdBtn');
+    const newIdBtn = document.getElementById('newIdBtn');
+    const deleteIdBtn = document.getElementById('deleteIdBtn');
+    const messageInput = document.getElementById('messageInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const chatContainer = document.getElementById('chatMessages');
+    const statusSpan = document.getElementById('statusText');
+    const userNameSpan = document.getElementById('userNameDisplay');
+
+    // Helper waktu
+    function getTime() {
+        return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    // Tampilkan pesan di UI
+    function addMessage(text, type) {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `message ${type}`;
+        const bubble = document.createElement('div');
+        bubble.className = 'bubble';
+        bubble.innerText = text;
+        const timeSpan = document.createElement('div');
+        timeSpan.className = 'time';
+        timeSpan.innerHTML = `<i class="far fa-clock"></i> ${getTime()}`;
+        bubble.appendChild(timeSpan);
+        msgDiv.appendChild(bubble);
+        chatContainer.appendChild(msgDiv);
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    // Kirim pesan
+    function sendMessage() {
+        if (!isConnected || !currentConnection) {
+            statusSpan.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Belum terhubung!';
+            return;
+        }
+        const text = messageInput.value.trim();
+        if (text === "") return;
+        currentConnection.send({ type: 'chat', text: text });
+        addMessage(text, 'sent');
+        messageInput.value = '';
+        messageInput.focus();
+    }
+
+    // Koneksi berhasil
+    function onConnected(conn) {
+        currentConnection = conn;
+        isConnected = true;
+        messageInput.disabled = false;
+        sendBtn.disabled = false;
+        statusSpan.innerHTML = '<i class="fas fa-check-circle"></i> 🔒 Terhubung aman — kirim pesan';
+        
+        conn.on('data', (data) => {
+            if (data.type === 'chat') addMessage(data.text, 'received');
+        });
+        conn.on('close', () => {
+            statusSpan.innerHTML = '<i class="fas fa-plug"></i> Koneksi terputus. Sambung ulang.';
+            isConnected = false;
+            messageInput.disabled = true;
+            sendBtn.disabled = true;
+            currentConnection = null;
+        });
+    }
+
+    // Hubungkan ke peer
+    function connectToPeer() {
+        const targetId = targetIdInput.value.trim();
+        if (!targetId) { statusSpan.innerHTML = '<i class="fas fa-ban"></i> Masukkan ID teman!'; return; }
+        if (targetId === peer.id) { statusSpan.innerHTML = '<i class="fas fa-smile-wink"></i> Tidak bisa konek ke diri sendiri'; return; }
+        statusSpan.innerHTML = `<i class="fas fa-spinner fa-pulse"></i> Menghubungi ${targetId} ...`;
+        const conn = peer.connect(targetId);
+        conn.on('open', () => {
+            statusSpan.innerHTML = `<i class="fas fa-link"></i> Tersambung dengan ${targetId}`;
+            onConnected(conn);
+        });
+        conn.on('error', (err) => {
+            statusSpan.innerHTML = `<i class="fas fa-times-circle"></i> Gagal: ${err.message}`;
+        });
+    }
+
+    // Nama pengguna random (premium vibe)
+    function initUserName() {
+        let saved = localStorage.getItem("nexus_username");
+        if (saved) {
+            userNameSpan.innerText = saved;
+        } else {
+            const names = ["Voyager", "Nebula", "Stellar", "Eclipse", "Aurora", "Phoenix", "Orion", "Lyra"];
+            const randomName = names[Math.floor(Math.random() * names.length)];
+            localStorage.setItem("nexus_username", randomName);
+            userNameSpan.innerText = randomName;
+        }
+    }
+
+    // Event Peer
+    peer.on('open', (id) => {
+        myIdSpan.innerText = id;
+        statusSpan.innerHTML = '<i class="fas fa-shield-alt"></i> ID permanen aktif. Bagikan ke teman.';
+        initUserName();
+    });
+    peer.on('connection', (conn) => {
+        statusSpan.innerHTML = `<i class="fas fa-phone-alt"></i> Koneksi masuk dari ${conn.peer}`;
+        conn.on('open', () => {
+            statusSpan.innerHTML = `<i class="fas fa-handshake"></i> Tersambung dengan ${conn.peer}`;
+            onConnected(conn);
+        });
+    });
+    peer.on('error', (err) => {
+        console.error(err);
+        statusSpan.innerHTML = `<i class="fas fa-bug"></i> Error: ${err.message}`;
+    });
+
+    // Listener tombol
+    connectBtn.addEventListener('click', connectToPeer);
+    sendBtn.addEventListener('click', sendMessage);
+    copyBtn.addEventListener('click', () => {
+        navigator.clipboard.writeText(peer.id);
+        statusSpan.innerHTML = '<i class="fas fa-copy"></i> ID disalin! (permanen)';
+        setTimeout(() => {
+            if (isConnected) statusSpan.innerHTML = '<i class="fas fa-check-circle"></i> 🔒 Terhubung aman';
+            else statusSpan.innerHTML = '<i class="fas fa-plug"></i> Siap koneksi';
+        }, 1500);
+    });
+    newIdBtn.addEventListener('click', createNewId);
+    deleteIdBtn.addEventListener('click', deleteSavedId);
+    messageInput.addEventListener('keypress', (e) => { if (e.key === 'Enter' && isConnected) sendMessage(); });
+
+    // Pesan sambutan
+    setTimeout(() => {
+        if (chatContainer.children.length === 1) {
+            addMessage("✨ masukan ID untuk memulai chat✨", 'received');
+        }
+    }, 800);
+</script>
+</body>
+</html>
